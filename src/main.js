@@ -11,6 +11,7 @@ function createWindow() {
     minWidth: 1040,
     minHeight: 680,
     title: "LightPaws Destiny Hub",
+    icon: path.join(__dirname, "assets", "app-icon.ico"),
     backgroundColor: "#111319",
     autoHideMenuBar: true,
     webPreferences: {

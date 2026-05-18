@@ -4,6 +4,7 @@ const links = [
     label: "LightPaws",
     url: "https://light-paws.com",
     tag: "Klan",
+    icon: "./assets/clan-logo.png",
     recommended: true
   },
   {

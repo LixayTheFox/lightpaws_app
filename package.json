@@ -1,6 +1,6 @@
 {
   "name": "lightpaws-destiny-hub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop hub for LightPaws clan Destiny 2 links.",
   "main": "src/main.js",
   "private": true,
@@ -34,6 +34,7 @@
     ],
     "asar": true,
     "win": {
+      "icon": "src/assets/app-icon.ico",
       "signAndEditExecutable": false,
       "target": [
         {
@@ -51,6 +52,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
+      "installerIcon": "src/assets/app-icon.ico",
+      "uninstallerIcon": "src/assets/app-icon.ico",
       "shortcutName": "LightPaws Destiny Hub"
     },
     "publish": [
