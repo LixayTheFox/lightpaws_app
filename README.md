@@ -33,7 +33,7 @@ Potem zbuduj instalator Windows:
 npm run dist
 ```
 
-Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.6.exe`.
+Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.7.exe`.
 
 Lokalny build ma wylaczone `build.win.signAndEditExecutable`, zeby instalator dal sie zbudowac bez certyfikatu podpisu kodu. Do publicznej dystrybucji najlepiej kupic/dodac certyfikat code signing i wlaczyc to pole ponownie, bo inaczej Windows SmartScreen moze pokazac ostrzezenie przy pierwszym uruchomieniu.
 
