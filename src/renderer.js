@@ -82,15 +82,27 @@ const elements = {
   statusText: document.getElementById("statusText"),
   emptyState: document.getElementById("emptyState"),
   emptyMessage: document.getElementById("emptyMessage"),
+  calendarPanel: document.getElementById("calendarPanel"),
+  calendarTitle: document.getElementById("calendarTitle"),
+  calendarTime: document.getElementById("calendarTime"),
+  calendarDescription: document.getElementById("calendarDescription"),
+  calendarLocation: document.getElementById("calendarLocation"),
+  calendarCountdown: document.getElementById("calendarCountdown"),
+  calendarRefreshButton: document.getElementById("calendarRefreshButton"),
+  calendarOpenButton: document.getElementById("calendarOpenButton"),
   retryButton: document.getElementById("retryButton"),
   backButton: document.getElementById("backButton"),
   forwardButton: document.getElementById("forwardButton"),
   reloadButton: document.getElementById("reloadButton"),
+  calendarButton: document.getElementById("calendarButton"),
   updateButton: document.getElementById("updateButton"),
   externalButton: document.getElementById("externalButton")
 };
 
 let activeLink = links[0];
+let activeView = "web";
+let calendarSourceUrl = "";
+let calendarEventUrl = "";
 
 function fitWebView() {
   const width = elements.webFrame.clientWidth;
@@ -219,6 +231,21 @@ function setStatus(kind, text) {
   elements.statusText.textContent = text;
 }
 
+function showWebView() {
+  activeView = "web";
+  elements.siteView.hidden = false;
+  elements.calendarPanel.hidden = true;
+  elements.emptyState.hidden = true;
+  fitWebView();
+}
+
+function showCalendarPanel() {
+  activeView = "calendar";
+  elements.siteView.hidden = true;
+  elements.emptyState.hidden = true;
+  elements.calendarPanel.hidden = false;
+}
+
 function selectLink(linkId) {
   const nextLink = links.find((link) => link.id === linkId);
   if (!nextLink) {
@@ -229,14 +256,153 @@ function selectLink(linkId) {
   elements.siteTitle.textContent = activeLink.label;
   elements.siteUrl.textContent = activeLink.url;
   elements.siteTag.textContent = activeLink.tag;
-  elements.emptyState.hidden = true;
+  showWebView();
   updateActiveLink();
   setStatus("loading", "Ladowanie...");
   elements.siteView.src = activeLink.url;
 }
 
 function currentUrl() {
+  if (activeView === "calendar") {
+    return calendarEventUrl || calendarSourceUrl || activeLink.url;
+  }
+
   return elements.siteView.getURL ? elements.siteView.getURL() : activeLink.url;
+}
+
+function plainText(text) {
+  return String(text || "")
+    .replace(/\\n/g, "\n")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
+function formatEventDate(event, timezone) {
+  const start = new Date(event.start);
+  const end = new Date(event.end);
+
+  if (event.allDay) {
+    return new Intl.DateTimeFormat("pl-PL", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      timeZone: timezone
+    }).format(start);
+  }
+
+  const date = new Intl.DateTimeFormat("pl-PL", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    timeZone: timezone
+  }).format(start);
+  const time = new Intl.DateTimeFormat("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone
+  }).formatRange(start, end);
+
+  return `${date}, ${time}`;
+}
+
+function formatCountdown(startDate) {
+  const diff = startDate.getTime() - Date.now();
+  if (diff <= 0) {
+    return "Trwa teraz";
+  }
+
+  const minutes = Math.round(diff / 60000);
+  if (minutes < 90) {
+    return `Za ${minutes} min`;
+  }
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) {
+    return `Za ${hours} godz.`;
+  }
+
+  const days = Math.round(hours / 24);
+  return `Za ${days} dni`;
+}
+
+function setCalendarLoading() {
+  showCalendarPanel();
+  elements.siteTag.textContent = "Kalendarz";
+  elements.siteTitle.textContent = "Kalendarz klanu";
+  elements.siteUrl.textContent = "Synchronizacja z Google Calendar";
+  elements.calendarTitle.textContent = "Ladowanie wydarzenia...";
+  elements.calendarTime.textContent = "Pobieram dane";
+  elements.calendarDescription.textContent = "Sprawdzam publiczny kalendarz klanu i szukam najblizszego wydarzenia.";
+  elements.calendarLocation.textContent = "LightPaws";
+  elements.calendarCountdown.textContent = "--";
+  elements.calendarOpenButton.hidden = true;
+  calendarEventUrl = "";
+  setStatus("loading", "Pobieranie kalendarza...");
+}
+
+function setCalendarMessage(title, description, status = "Gotowe") {
+  showCalendarPanel();
+  elements.calendarTitle.textContent = title;
+  elements.calendarTime.textContent = status;
+  elements.calendarDescription.textContent = description;
+  elements.calendarLocation.textContent = "LightPaws";
+  elements.calendarCountdown.textContent = "--";
+  elements.calendarOpenButton.hidden = true;
+  calendarEventUrl = "";
+  setStatus("ready", "Gotowe");
+}
+
+function renderCalendarEvent(result) {
+  const timezone = result.timezone || "Europe/Warsaw";
+  calendarSourceUrl = result.source || "";
+
+  if (!result.configured) {
+    setCalendarMessage(
+      "Kalendarz nie jest skonfigurowany",
+      "Wklej publiczny adres iCal albo Google Calendar ID w pliku src/calendar-config.json.",
+      "Brak konfiguracji"
+    );
+    return;
+  }
+
+  if (!result.event) {
+    setCalendarMessage(
+      "Brak nadchodzacych wydarzen",
+      "Publiczny kalendarz dziala, ale nie znalazlem wydarzenia w najblizszym oknie czasowym.",
+      "Kalendarz pusty"
+    );
+    return;
+  }
+
+  const event = result.event;
+  const start = new Date(event.start);
+  calendarEventUrl = event.url || calendarSourceUrl;
+
+  elements.calendarTitle.textContent = event.title;
+  elements.calendarTime.textContent = formatEventDate(event, timezone);
+  elements.calendarDescription.textContent =
+    plainText(event.description) || "Brak dodatkowego opisu wydarzenia.";
+  elements.calendarLocation.textContent = event.location || "Online / Discord";
+  elements.calendarCountdown.textContent = formatCountdown(start);
+  elements.calendarOpenButton.hidden = !calendarEventUrl;
+  elements.siteUrl.textContent = calendarSourceUrl ? "Publiczny Google Calendar" : "Kalendarz klanu";
+  setStatus("ready", "Kalendarz zsynchronizowany");
+}
+
+async function loadCalendarEvent() {
+  setCalendarLoading();
+
+  try {
+    const result = await window.lightPaws.getNextCalendarEvent();
+    renderCalendarEvent(result);
+  } catch (error) {
+    setStatus("error", "Problem z kalendarzem");
+    setCalendarMessage(
+      "Nie mozna pobrac kalendarza",
+      error.message || "Sprawdz publiczny link iCal oraz polaczenie z internetem.",
+      "Blad synchronizacji"
+    );
+  }
 }
 
 elements.backButton.addEventListener("click", () => {
@@ -252,6 +418,11 @@ elements.forwardButton.addEventListener("click", () => {
 });
 
 elements.reloadButton.addEventListener("click", () => {
+  if (activeView === "calendar") {
+    loadCalendarEvent();
+    return;
+  }
+
   elements.emptyState.hidden = true;
   elements.siteView.reload();
 });
@@ -262,6 +433,20 @@ elements.externalButton.addEventListener("click", () => {
 
 elements.updateButton.addEventListener("click", () => {
   window.lightPaws.checkForUpdates();
+});
+
+elements.calendarButton.addEventListener("click", () => {
+  loadCalendarEvent();
+});
+
+elements.calendarRefreshButton.addEventListener("click", () => {
+  loadCalendarEvent();
+});
+
+elements.calendarOpenButton.addEventListener("click", () => {
+  if (calendarEventUrl) {
+    window.lightPaws.openExternal(calendarEventUrl);
+  }
 });
 
 elements.retryButton.addEventListener("click", () => {

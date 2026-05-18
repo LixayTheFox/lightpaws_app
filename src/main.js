@@ -1,8 +1,10 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const { autoUpdater } = require("electron-updater");
+const ICAL = require("ical.js");
 const path = require("path");
 
 const APP_ID = "com.lightpaws.destinyhub";
+const CALENDAR_CONFIG = require("./calendar-config.json");
 
 let updateDialogOpen = false;
 let updateCheckInProgress = false;
@@ -154,6 +156,116 @@ async function checkForUpdates(mainWindow, manual) {
   return true;
 }
 
+function calendarIcsUrl() {
+  if (CALENDAR_CONFIG.publicIcsUrl) {
+    return CALENDAR_CONFIG.publicIcsUrl;
+  }
+
+  if (CALENDAR_CONFIG.googleCalendarId) {
+    return `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_CONFIG.googleCalendarId)}/public/basic.ics`;
+  }
+
+  return "";
+}
+
+function calendarWindowEnd() {
+  const lookAheadDays = Number(CALENDAR_CONFIG.lookAheadDays) || 180;
+  return new Date(Date.now() + lookAheadDays * 24 * 60 * 60 * 1000);
+}
+
+function readTextFromUrl(url) {
+  return fetch(url, {
+    headers: {
+      "user-agent": `${app.getName()}/${app.getVersion()}`
+    }
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error(`Calendar request failed with HTTP ${response.status}`);
+    }
+
+    return response.text();
+  });
+}
+
+function eventOccurrence(calendarEvent, start, end) {
+  return {
+    title: calendarEvent.summary || "Wydarzenie klanu",
+    description: calendarEvent.description || "",
+    location: calendarEvent.location || "",
+    url: calendarEvent.component.getFirstPropertyValue("url") || "",
+    start: start.toISOString(),
+    end: end.toISOString(),
+    allDay: calendarEvent.startDate.isDate
+  };
+}
+
+function extractCalendarEvents(icsText) {
+  const jcal = ICAL.parse(icsText);
+  const calendar = new ICAL.Component(jcal);
+  const now = new Date();
+  const maxDate = calendarWindowEnd();
+  const events = [];
+
+  for (const component of calendar.getAllSubcomponents("vevent")) {
+    const calendarEvent = new ICAL.Event(component);
+
+    if (calendarEvent.isRecurring()) {
+      const iterator = calendarEvent.iterator();
+      let next;
+      let guard = 0;
+
+      while ((next = iterator.next()) && guard < 500) {
+        guard += 1;
+        const details = calendarEvent.getOccurrenceDetails(next);
+        const start = details.startDate.toJSDate();
+        const end = details.endDate.toJSDate();
+
+        if (end < now) {
+          continue;
+        }
+
+        if (start > maxDate) {
+          break;
+        }
+
+        events.push(eventOccurrence(calendarEvent, start, end));
+      }
+    } else {
+      const start = calendarEvent.startDate.toJSDate();
+      const end = calendarEvent.endDate.toJSDate();
+
+      if (end >= now && start <= maxDate) {
+        events.push(eventOccurrence(calendarEvent, start, end));
+      }
+    }
+  }
+
+  return events.sort((first, second) => new Date(first.start) - new Date(second.start));
+}
+
+async function getNextCalendarEvent() {
+  const url = calendarIcsUrl();
+
+  if (!url) {
+    return {
+      configured: false,
+      event: null,
+      source: "Google Calendar",
+      timezone: CALENDAR_CONFIG.timezone || "Europe/Warsaw"
+    };
+  }
+
+  const icsText = await readTextFromUrl(url);
+  const events = extractCalendarEvents(icsText);
+
+  return {
+    configured: true,
+    event: events[0] || null,
+    source: url,
+    timezone: CALENDAR_CONFIG.timezone || "Europe/Warsaw"
+  };
+}
+
 ipcMain.handle("open-external", async (_event, url) => {
   if (typeof url !== "string") {
     return false;
@@ -182,6 +294,8 @@ ipcMain.handle("check-for-updates", async (event) => {
 
   return checkForUpdates(mainWindow, true);
 });
+
+ipcMain.handle("get-next-calendar-event", () => getNextCalendarEvent());
 
 app.whenReady().then(() => {
   const mainWindow = createWindow();

@@ -1,6 +1,6 @@
 {
   "name": "lightpaws-destiny-hub",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Desktop hub for LightPaws clan Destiny 2 links.",
   "main": "src/main.js",
   "private": true,
@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
-    "electron-updater": "^6.6.2"
+    "electron-updater": "^6.6.2",
+    "ical.js": "^2.2.1"
   },
   "devDependencies": {
     "electron-builder": "^26.0.12",

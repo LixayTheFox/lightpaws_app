@@ -36,6 +36,7 @@
             <button class="icon-button" id="backButton" type="button" title="Wstecz" aria-label="Wstecz">&larr;</button>
             <button class="icon-button" id="forwardButton" type="button" title="Dalej" aria-label="Dalej">&rarr;</button>
             <button class="icon-button" id="reloadButton" type="button" title="Odswiez" aria-label="Odswiez">&#8635;</button>
+            <button class="icon-button" id="calendarButton" type="button" title="Kalendarz klanu" aria-label="Kalendarz klanu">&#9638;</button>
             <button class="icon-button" id="updateButton" type="button" title="Sprawdz aktualizacje" aria-label="Sprawdz aktualizacje">&#8681;</button>
             <button class="icon-button" id="externalButton" type="button" title="Otworz w przegladarce" aria-label="Otworz w przegladarce">&#8599;</button>
           </div>
@@ -59,6 +60,23 @@
             <p id="emptyMessage">Sprawdz polaczenie albo otworz strone w zewnetrznej przegladarce.</p>
             <button id="retryButton" type="button">Sprobuj ponownie</button>
           </div>
+          <section class="calendar-panel" id="calendarPanel" hidden>
+            <div class="calendar-card">
+              <div class="calendar-orbit" aria-hidden="true"></div>
+              <div class="calendar-kicker">Kalendarz klanu</div>
+              <h3 id="calendarTitle">Ladowanie wydarzenia...</h3>
+              <div class="calendar-time" id="calendarTime">Synchronizacja z Google Calendar</div>
+              <p class="calendar-description" id="calendarDescription">Pobieram najblizsze wydarzenie z publicznego kalendarza.</p>
+              <div class="calendar-details">
+                <span id="calendarLocation">LightPaws</span>
+                <span id="calendarCountdown">--</span>
+              </div>
+              <div class="calendar-actions">
+                <button id="calendarRefreshButton" type="button">Odswiez</button>
+                <button id="calendarOpenButton" type="button" hidden>Otworz link</button>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
     </main>

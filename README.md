@@ -33,7 +33,7 @@ Potem zbuduj instalator Windows:
 npm run dist
 ```
 
-Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.5.exe`.
+Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.6.exe`.
 
 Lokalny build ma wylaczone `build.win.signAndEditExecutable`, zeby instalator dal sie zbudowac bez certyfikatu podpisu kodu. Do publicznej dystrybucji najlepiej kupic/dodac certyfikat code signing i wlaczyc to pole ponownie, bo inaczej Windows SmartScreen moze pokazac ostrzezenie przy pierwszym uruchomieniu.
 
@@ -50,6 +50,23 @@ git push --tags
 ```
 
 Workflow `.github/workflows/release.yml` zbuduje instalator i opublikuje go w GitHub Releases dla tagow `v*`.
+
+## Kalendarz klanu
+
+Przycisk kalendarza w aplikacji pobiera najblizsze wydarzenie z publicznego Google Calendar w formacie iCal.
+
+Skonfiguruj kalendarz w `src/calendar-config.json`:
+
+```json
+{
+  "googleCalendarId": "twoj-publiczny-kalendarz@group.calendar.google.com",
+  "publicIcsUrl": "",
+  "timezone": "Europe/Warsaw",
+  "lookAheadDays": 180
+}
+```
+
+Mozesz tez wkleic pelny publiczny adres iCal w `publicIcsUrl`. Jesli oba pola sa wypelnione, aplikacja uzyje `publicIcsUrl`.
 
 ## Linki
 
