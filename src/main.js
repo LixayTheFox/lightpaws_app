@@ -2,7 +2,15 @@ const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const path = require("path");
 
+const APP_ID = "com.lightpaws.destinyhub";
+
 let updateDialogOpen = false;
+let updateCheckInProgress = false;
+let manualUpdateCheck = false;
+
+if (process.platform === "win32") {
+  app.setAppUserModelId(APP_ID);
+}
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -34,10 +42,6 @@ function createWindow() {
 }
 
 function setupAutoUpdater(mainWindow) {
-  if (!app.isPackaged) {
-    return;
-  }
-
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
 
@@ -47,6 +51,7 @@ function setupAutoUpdater(mainWindow) {
     }
 
     updateDialogOpen = true;
+    manualUpdateCheck = false;
     const result = await dialog.showMessageBox(mainWindow, {
       type: "info",
       buttons: ["Pobierz aktualizacje", "Pozniej"],
@@ -60,10 +65,31 @@ function setupAutoUpdater(mainWindow) {
 
     if (result.response === 0) {
       autoUpdater.downloadUpdate();
+    } else {
+      updateCheckInProgress = false;
     }
   });
 
+  autoUpdater.on("update-not-available", async () => {
+    updateCheckInProgress = false;
+
+    if (!manualUpdateCheck) {
+      return;
+    }
+
+    manualUpdateCheck = false;
+    await dialog.showMessageBox(mainWindow, {
+      type: "info",
+      buttons: ["OK"],
+      title: "Brak aktualizacji",
+      message: "Masz najnowsza wersje aplikacji.",
+      detail: `Aktualna wersja: ${app.getVersion()}`
+    });
+  });
+
   autoUpdater.on("update-downloaded", async (info) => {
+    updateCheckInProgress = false;
+
     const result = await dialog.showMessageBox(mainWindow, {
       type: "info",
       buttons: ["Zainstaluj i uruchom ponownie", "Pozniej"],
@@ -80,14 +106,52 @@ function setupAutoUpdater(mainWindow) {
   });
 
   autoUpdater.on("error", (error) => {
+    updateCheckInProgress = false;
+
+    if (manualUpdateCheck) {
+      manualUpdateCheck = false;
+      dialog.showMessageBox(mainWindow, {
+        type: "error",
+        buttons: ["OK"],
+        title: "Nie mozna sprawdzic aktualizacji",
+        message: "Aplikacja nie mogla sprawdzic GitHub Releases.",
+        detail: error.message || String(error)
+      });
+    }
+
     console.error("Auto-update error:", error);
   });
 
   setTimeout(() => {
-    autoUpdater.checkForUpdates().catch((error) => {
+    checkForUpdates(mainWindow, false).catch((error) => {
       console.error("Update check failed:", error);
     });
   }, 4000);
+}
+
+async function checkForUpdates(mainWindow, manual) {
+  if (!app.isPackaged) {
+    if (manual) {
+      await dialog.showMessageBox(mainWindow, {
+        type: "info",
+        buttons: ["OK"],
+        title: "Tryb developerski",
+        message: "Aktualizacje sa sprawdzane tylko w zainstalowanej aplikacji.",
+        detail: "Uruchom aplikacje z instalatora EXE albo z folderu dist\\win-unpacked, a nie przez npm start."
+      });
+    }
+
+    return false;
+  }
+
+  if (updateCheckInProgress) {
+    return false;
+  }
+
+  updateCheckInProgress = true;
+  manualUpdateCheck = manual;
+  await autoUpdater.checkForUpdates();
+  return true;
 }
 
 ipcMain.handle("open-external", async (_event, url) => {
@@ -108,6 +172,15 @@ ipcMain.handle("open-external", async (_event, url) => {
 
   await shell.openExternal(parsed.toString());
   return true;
+});
+
+ipcMain.handle("check-for-updates", async (event) => {
+  const mainWindow = BrowserWindow.fromWebContents(event.sender);
+  if (!mainWindow) {
+    return false;
+  }
+
+  return checkForUpdates(mainWindow, true);
 });
 
 app.whenReady().then(() => {

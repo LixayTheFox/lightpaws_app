@@ -21,11 +21,11 @@ npm start
 
 ## Budowanie instalatora
 
-Przed pierwszym releasem zmien w `package.json` pola GitHub:
+Aplikacja jest skonfigurowana do aktualizacji z repo:
 
-- `repository.url`
-- `build.publish[0].owner`
-- `build.publish[0].repo`
+```text
+https://github.com/LixayTheFox/lightpaws_app
+```
 
 Potem zbuduj instalator Windows:
 
@@ -33,7 +33,7 @@ Potem zbuduj instalator Windows:
 npm run dist
 ```
 
-Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.0.exe`.
+Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.4.exe`.
 
 Lokalny build ma wylaczone `build.win.signAndEditExecutable`, zeby instalator dal sie zbudowac bez certyfikatu podpisu kodu. Do publicznej dystrybucji najlepiej kupic/dodac certyfikat code signing i wlaczyc to pole ponownie, bo inaczej Windows SmartScreen moze pokazac ostrzezenie przy pierwszym uruchomieniu.
 

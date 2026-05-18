@@ -86,6 +86,7 @@ const elements = {
   backButton: document.getElementById("backButton"),
   forwardButton: document.getElementById("forwardButton"),
   reloadButton: document.getElementById("reloadButton"),
+  updateButton: document.getElementById("updateButton"),
   externalButton: document.getElementById("externalButton")
 };
 
@@ -257,6 +258,10 @@ elements.reloadButton.addEventListener("click", () => {
 
 elements.externalButton.addEventListener("click", () => {
   window.lightPaws.openExternal(currentUrl());
+});
+
+elements.updateButton.addEventListener("click", () => {
+  window.lightPaws.checkForUpdates();
 });
 
 elements.retryButton.addEventListener("click", () => {

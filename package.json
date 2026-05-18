@@ -1,13 +1,13 @@
 {
   "name": "lightpaws-destiny-hub",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Desktop hub for LightPaws clan Destiny 2 links.",
   "main": "src/main.js",
   "private": true,
   "author": "LightPaws",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LightPaws/lightpaws-destiny-hub.git"
+    "url": "https://github.com/LixayTheFox/lightpaws_app.git"
   },
   "scripts": {
     "start": "electron .",
@@ -33,6 +33,7 @@
       "package.json"
     ],
     "asar": true,
+    "afterPack": "scripts/apply-windows-icon.js",
     "win": {
       "icon": "src/assets/app-icon.ico",
       "signAndEditExecutable": false,
@@ -59,8 +60,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "LightPaws",
-        "repo": "lightpaws-destiny-hub",
+        "owner": "LixayTheFox",
+        "repo": "lightpaws_app",
         "releaseType": "release"
       }
     ]
