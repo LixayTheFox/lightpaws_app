@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LightPaws Destiny Hub</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <section class="brand">
+          <div class="brand-mark">LP</div>
+          <div>
+            <h1>LightPaws</h1>
+            <p>Destiny Hub</p>
+          </div>
+        </section>
+
+        <nav class="link-list" id="linkList" aria-label="Destiny 2 links"></nav>
+      </aside>
+
+      <section class="workspace">
+        <header class="toolbar">
+          <div class="site-meta">
+            <span class="site-pill" id="siteTag">Klan</span>
+            <div>
+              <h2 id="siteTitle">LightPaws</h2>
+              <p id="siteUrl">https://light-paws.com</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="icon-button" id="backButton" type="button" title="Wstecz" aria-label="Wstecz">&larr;</button>
+            <button class="icon-button" id="forwardButton" type="button" title="Dalej" aria-label="Dalej">&rarr;</button>
+            <button class="icon-button" id="reloadButton" type="button" title="Odswiez" aria-label="Odswiez">&#8635;</button>
+            <button class="icon-button" id="externalButton" type="button" title="Otworz w przegladarce" aria-label="Otworz w przegladarce">&#8599;</button>
+          </div>
+        </header>
+
+        <div class="status-bar">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Gotowe</span>
+        </div>
+
+        <div class="web-frame" id="webFrame">
+          <webview
+            id="siteView"
+            src="https://light-paws.com"
+            style="width: 100%; height: 100%;"
+            allowpopups
+            partition="persist:lightpaws-destiny-hub"
+          ></webview>
+          <div class="empty-state" id="emptyState" hidden>
+            <h3>Strona nie zaladowala sie</h3>
+            <p id="emptyMessage">Sprawdz polaczenie albo otworz strone w zewnetrznej przegladarce.</p>
+            <button id="retryButton" type="button">Sprobuj ponownie</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
