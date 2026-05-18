@@ -1,6 +1,6 @@
 {
   "name": "lightpaws-destiny-hub",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Desktop hub for LightPaws clan Destiny 2 links.",
   "main": "src/main.js",
   "private": true,
@@ -12,10 +12,11 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win --x64",
-    "publish:win": "electron-builder --win --x64 --publish always"
+    "dist": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --x64",
+    "publish:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --x64 --publish always"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "electron-updater": "^6.6.2"
   },
   "devDependencies": {
