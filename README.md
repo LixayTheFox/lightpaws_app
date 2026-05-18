@@ -19,6 +19,38 @@ npm install
 npm start
 ```
 
+## Budowanie instalatora
+
+Przed pierwszym releasem zmien w `package.json` pola GitHub:
+
+- `repository.url`
+- `build.publish[0].owner`
+- `build.publish[0].repo`
+
+Potem zbuduj instalator Windows:
+
+```powershell
+npm run dist
+```
+
+Gotowy plik `.exe` pojawi sie w folderze `dist`, np. `LightPaws-Destiny-Hub-Setup-0.1.0.exe`.
+
+Lokalny build ma wylaczone `build.win.signAndEditExecutable`, zeby instalator dal sie zbudowac bez certyfikatu podpisu kodu. Do publicznej dystrybucji najlepiej kupic/dodac certyfikat code signing i wlaczyc to pole ponownie, bo inaczej Windows SmartScreen moze pokazac ostrzezenie przy pierwszym uruchomieniu.
+
+## Aktualizacje z GitHub Releases
+
+Aplikacja korzysta z `electron-updater` i po zainstalowaniu sprawdza GitHub Releases. Jesli znajdzie nowsza wersje, pyta uzytkownika, czy pobrac aktualizacje. Po pobraniu pyta ponownie, czy zainstalowac i uruchomic aplikacje od nowa.
+
+Najwygodniejszy proces wydania:
+
+```powershell
+npm version patch
+git push
+git push --tags
+```
+
+Workflow `.github/workflows/release.yml` zbuduje instalator i opublikuje go w GitHub Releases dla tagow `v*`.
+
 ## Linki
 
 Liste stron zmienisz w `src/renderer.js` w tablicy `links`.
