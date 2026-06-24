@@ -1,6 +1,6 @@
 {
   "name": "lightpaws-destiny-hub",
-  "version": "0.1.9",
+  "version": "1.0.0",
   "description": "Desktop hub for LightPaws clan Destiny 2 links.",
   "main": "src/main.js",
   "private": true,

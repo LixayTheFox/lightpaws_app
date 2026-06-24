@@ -244,11 +244,13 @@
     brand.setAttribute("role", "button");
     brand.setAttribute("tabindex", "0");
     brand.setAttribute("title", "Wybierz Websites albo Tools");
+    brand.setAttribute("aria-controls", "hubModePanel");
+    brand.setAttribute("aria-expanded", "false");
 
     const panel = document.createElement("section");
     panel.id = "hubModePanel";
     panel.className = "hub-mode-panel";
-    panel.hidden = true;
+    panel.setAttribute("aria-hidden", "true");
     panel.innerHTML = `
       <div class="hub-mode-switch" role="tablist" aria-label="LightPaws hub">
         <button id="hubWebsitesButton" class="active" type="button">Websites</button>
@@ -276,9 +278,13 @@
     `;
     linkList.insertAdjacentElement("afterend", toolList);
 
-    const togglePanel = () => {
-      panel.hidden = !panel.hidden;
+    const setMenuOpen = (open) => {
+      panel.classList.toggle("open", open);
+      brand.classList.toggle("hub-menu-open", open);
+      brand.setAttribute("aria-expanded", String(open));
+      panel.setAttribute("aria-hidden", String(!open));
     };
+    const togglePanel = () => setMenuOpen(!panel.classList.contains("open"));
     brand.addEventListener("click", togglePanel);
     brand.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -287,14 +293,21 @@
       }
     });
 
-    byId("hubWebsitesButton")?.addEventListener("click", () => setHubMode("websites"));
-    byId("hubToolsButton")?.addEventListener("click", () => setHubMode("tools"));
+    byId("hubWebsitesButton")?.addEventListener("click", () => {
+      setHubMode("websites");
+      setMenuOpen(false);
+    });
+    byId("hubToolsButton")?.addEventListener("click", () => {
+      setHubMode("tools");
+      setMenuOpen(false);
+    });
     byId("raidGuidesToolButton")?.addEventListener("click", showGuide);
     setHubMode("websites");
   }
 
   function setHubMode(mode) {
     const sidebar = document.querySelector(".sidebar");
+    const workspace = document.querySelector(".workspace");
     const linkList = byId("linkList");
     const toolList = byId("toolList");
     const websitesButton = byId("hubWebsitesButton");
@@ -302,6 +315,16 @@
 
     if (sidebar) {
       sidebar.dataset.hubMode = mode;
+      sidebar.classList.remove("hub-list-switching");
+      void sidebar.offsetWidth;
+      sidebar.classList.add("hub-list-switching");
+      window.setTimeout(() => sidebar.classList.remove("hub-list-switching"), 260);
+    }
+    if (workspace) {
+      workspace.classList.remove("workspace-switching");
+      void workspace.offsetWidth;
+      workspace.classList.add("workspace-switching");
+      window.setTimeout(() => workspace.classList.remove("workspace-switching"), 260);
     }
     if (linkList) {
       linkList.hidden = mode !== "websites";
