@@ -1,3 +1,72 @@
+.brand-clickable {
+  cursor: pointer;
+}
+
+.brand-clickable:hover {
+  background:
+    linear-gradient(90deg, rgba(255, 122, 24, 0.16), transparent 78%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.hub-mode-panel {
+  border-bottom: 1px solid var(--line);
+  background: rgba(6, 8, 11, 0.9);
+  padding: 10px 12px 12px;
+}
+
+.hub-mode-panel[hidden],
+.link-list[hidden],
+.tool-list[hidden] {
+  display: none;
+}
+
+.hub-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(185, 210, 222, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.hub-mode-switch button {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.hub-mode-switch button.active {
+  border-color: rgba(255, 122, 24, 0.44);
+  background: rgba(255, 122, 24, 0.13);
+  color: var(--orange);
+}
+
+.tool-list {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.tool-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tool-list::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(6, 8, 11, 0.94);
+  border-radius: 8px;
+  background: rgba(185, 210, 222, 0.22);
+}
+
 .raid-guide-panel {
   position: absolute;
   inset: 0;

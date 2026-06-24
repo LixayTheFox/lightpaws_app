@@ -231,35 +231,97 @@
     webFrame.appendChild(panel);
   }
 
-  function createGuideNavButton() {
+  function createHubSwitcher() {
+    const sidebar = document.querySelector(".sidebar");
+    const brand = document.querySelector(".brand");
     const linkList = byId("linkList");
-    if (!linkList || byId("raidGuidesNavButton")) {
+
+    if (!sidebar || !brand || !linkList || byId("hubModePanel")) {
       return;
     }
 
-    const button = document.createElement("button");
-    button.id = "raidGuidesNavButton";
-    button.type = "button";
-    button.className = "nav-link nav-link-recommended";
-    button.dataset.linkId = "raid-guides";
-    button.innerHTML = `
-      <span class="nav-logo logo-fallback"><span>RG</span></span>
-      <span class="nav-copy">
-        <strong>Raid Guides</strong>
-        <span class="nav-meta">
-          <span class="nav-tag">Narzedzia</span>
-          <span class="clan-badge">Klan poleca</span>
-        </span>
-      </span>
-    `;
-    button.addEventListener("click", showGuide);
+    brand.classList.add("brand-clickable");
+    brand.setAttribute("role", "button");
+    brand.setAttribute("tabindex", "0");
+    brand.setAttribute("title", "Wybierz Websites albo Tools");
 
-    const firstButton = linkList.querySelector(".nav-link");
-    if (firstButton) {
-      firstButton.insertAdjacentElement("afterend", button);
-    } else {
-      linkList.appendChild(button);
+    const panel = document.createElement("section");
+    panel.id = "hubModePanel";
+    panel.className = "hub-mode-panel";
+    panel.hidden = true;
+    panel.innerHTML = `
+      <div class="hub-mode-switch" role="tablist" aria-label="LightPaws hub">
+        <button id="hubWebsitesButton" class="active" type="button">Websites</button>
+        <button id="hubToolsButton" type="button">Tools</button>
+      </div>
+    `;
+    brand.insertAdjacentElement("afterend", panel);
+
+    const toolList = document.createElement("nav");
+    toolList.id = "toolList";
+    toolList.className = "tool-list";
+    toolList.hidden = true;
+    toolList.setAttribute("aria-label", "LightPaws tools");
+    toolList.innerHTML = `
+      <button id="raidGuidesToolButton" class="nav-link nav-link-recommended tool-link" type="button">
+        <span class="nav-logo logo-fallback"><span>RG</span></span>
+        <span class="nav-copy">
+          <strong>Raid Guides</strong>
+          <span class="nav-meta">
+            <span class="nav-tag">Verity</span>
+            <span class="clan-badge">Tool</span>
+          </span>
+        </span>
+      </button>
+    `;
+    linkList.insertAdjacentElement("afterend", toolList);
+
+    const togglePanel = () => {
+      panel.hidden = !panel.hidden;
+    };
+    brand.addEventListener("click", togglePanel);
+    brand.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        togglePanel();
+      }
+    });
+
+    byId("hubWebsitesButton")?.addEventListener("click", () => setHubMode("websites"));
+    byId("hubToolsButton")?.addEventListener("click", () => setHubMode("tools"));
+    byId("raidGuidesToolButton")?.addEventListener("click", showGuide);
+    setHubMode("websites");
+  }
+
+  function setHubMode(mode) {
+    const sidebar = document.querySelector(".sidebar");
+    const linkList = byId("linkList");
+    const toolList = byId("toolList");
+    const websitesButton = byId("hubWebsitesButton");
+    const toolsButton = byId("hubToolsButton");
+
+    if (sidebar) {
+      sidebar.dataset.hubMode = mode;
     }
+    if (linkList) {
+      linkList.hidden = mode !== "websites";
+    }
+    if (toolList) {
+      toolList.hidden = mode !== "tools";
+    }
+    if (websitesButton) {
+      websitesButton.classList.toggle("active", mode === "websites");
+    }
+    if (toolsButton) {
+      toolsButton.classList.toggle("active", mode === "tools");
+    }
+
+    if (mode === "websites") {
+      hideGuide();
+      return;
+    }
+
+    showGuide();
   }
 
   function toolbarForGuide(isGuide) {
@@ -276,7 +338,7 @@
     const siteView = byId("siteView");
     const calendarPanel = byId("calendarPanel");
     const emptyState = byId("emptyState");
-    const navButton = byId("raidGuidesNavButton");
+    const toolButton = byId("raidGuidesToolButton");
 
     state.guideVisible = true;
     if (siteView) {
@@ -292,8 +354,11 @@
       panel.hidden = false;
     }
 
-    document.querySelectorAll(".nav-link").forEach((button) => {
-      button.classList.toggle("active", button === navButton);
+    document.querySelectorAll(".link-list .nav-link").forEach((button) => {
+      button.classList.remove("active");
+    });
+    document.querySelectorAll(".tool-list .nav-link").forEach((button) => {
+      button.classList.toggle("active", button === toolButton);
     });
 
     const tag = byId("siteTag");
@@ -324,6 +389,7 @@
     if (panel) {
       panel.hidden = true;
     }
+    byId("raidGuidesToolButton")?.classList.remove("active");
     toolbarForGuide(false);
   }
 
@@ -334,7 +400,7 @@
     if (linkList) {
       linkList.addEventListener("click", (event) => {
         const clicked = event.target.closest(".nav-link");
-        if (clicked && clicked.id !== "raidGuidesNavButton") {
+        if (clicked) {
           hideGuide();
         }
       });
@@ -390,14 +456,14 @@
     if (state.mode === "inside") {
       summary.innerHTML = `
         <strong>Cel:</strong>
-        <span>Kazdy gracz konczy z dwoma symbolami, ktore nie sa jego symbolem statuy.</span>
+        <span>Solo ma sciane/projekcje z dwoma symbolami innymi niz symbol statuy, a na koncu podnosi oba do wyjscia.</span>
       `;
       return;
     }
 
     summary.innerHTML = `
       <strong>Cel:</strong>
-      <span>Kazda statua zewnetrzna dostaje bryle z dwoch symboli innych niz jej symbol.</span>
+      <span>Dissection dopasowuje bryly 3D do symboli potrzebnych solo: Cylinder S+C, Cone C+T, Prism S+T.</span>
     `;
   }
 
@@ -810,7 +876,7 @@
   function init() {
     injectStylesheet();
     createGuidePanel();
-    createGuideNavButton();
+    createHubSwitcher();
     bindGlobalExit();
     bindPanelEvents();
     updateGuideSummary();
